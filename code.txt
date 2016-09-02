@@ -1,0 +1,219 @@
+Function populateSampleStats(consSummer As Double, consWinter As Double)
+    labelArr = Array("Total Electricity Consumption(S)", "Total Electricity Consumption(W)", "Total Electricity Consumption(Combined)", "Average Electricity Consumption(S)", "Average Electricity Consumption(W)", "Average Electricity Consumption(Combined)")
+    With lstSampleStats
+        .Clear
+        .AddItem
+        .List(0, 0) = labelArr(0)
+        .List(0, 1) = consSummer
+        .AddItem
+        .List(1, 0) = labelArr(1)
+        .List(1, 1) = consWinter
+    End With
+End Function
+
+Function populateGlobalStats()
+    Dim i As Integer: i = 0
+    Dim maxCons As Double
+    Dim maxSample As Integer
+    Dim minCons As Double
+    Dim minSample As Integer
+    Dim sumTemp As Double
+    Dim winTemp As Double
+    Dim combTemp As Double
+    Dim totalSummer As Double: totalSummer = 0
+    Dim totalWinter As Double: totalWinter = 0
+    labelArr = Array("Max House Sample No:", "Max Consumption(KwH):", "Min House Sample No:", "Min Consumption(KwH):", "Total Consumption Summer(KwH):", "Total Consumption Winter(KwH):", "Average Consumption(KwH):")
+    
+    lRow = Worksheets("House Details").Cells(Rows.Count, 1).End(xlUp).row
+    For i = 1 To (lRow - 1) Step 1
+        'sunTemp = 0
+        'winTemp = 0
+        'combTemp = 0
+        sunTemp = calcConsSummer(i)
+        winTemp = calcConsWinter(i)
+        combTemp = sunTemp + winTemp
+        totalSummer = totalSummer + sunTemp
+        totalWinter = totalWinter + winTemp
+        If (i = 1) Then
+            maxCons = combTemp
+            maxSample = i
+            minCons = combTemp
+            minSample = i
+        Else
+            If (combTemp > maxCons) Then
+                maxCons = combTemp
+                maxSample = i
+            End If
+            If (combTemp < minCons) Then
+                minCons = combTemp
+                minSample = i
+            End If
+        End If
+    Next
+    
+    With lstGlobalStats
+        .Clear
+            .AddItem
+            .List(0, 0) = labelArr(0)
+            .List(0, 1) = maxSample
+            .AddItem
+            .List(1, 0) = labelArr(1)
+            .List(1, 1) = maxCons
+            .AddItem
+            .List(2, 0) = labelArr(2)
+            .List(2, 1) = minSample
+            .AddItem
+            .List(3, 0) = labelArr(3)
+            .List(3, 1) = minCons
+            .AddItem
+            .List(4, 0) = labelArr(4)
+            .List(4, 1) = totalSummer
+            .AddItem
+            .List(5, 0) = labelArr(5)
+            .List(5, 1) = totalWinter
+            .AddItem
+            .List(6, 0) = labelArr(6)
+            .List(6, 1) = (totalSummer + totalWinter) / lRow
+    End With
+    Me.lstAppliance.Clear
+    
+End Function
+
+Function calcConsSummer(row As Integer)
+    Dim lCol As Long
+    Dim labelArr
+    labelArr = Array("Appliance Name", "Hour Usage")
+    
+    With lstAppliance
+        .Clear
+        .AddItem
+        .List(0, 0) = ""
+        .List(0, 1) = labelArr(0)
+        .List(0, 2) = labelArr(1)
+    End With
+    
+    timeUseSummerTop = 1
+    timeUseSummerLeft = 2
+    consSummerTop = 3
+    avgPowerKWH = 4
+    sumTotal = 0
+    j = 1
+    lCol = Worksheets("HHS appliances  Time of use S").Cells(timeUseSummerTop + row, Columns.Count).End(xlToLeft).Column
+    For i = 0 To lCol - 1 Step 1
+        deviceName = Worksheets("HHS appliances  Time of use S").Cells(timeUseSummerTop, timeUseSummerLeft + i)
+        deviceUsage = Worksheets("HHS appliances  Time of use S").Cells(timeUseSummerTop + row, timeUseSummerLeft + i)
+        deviceAvgPower = Worksheets("Consumption Summer").Cells(consSummerTop + i, avgPowerKWH)
+        sumTotal = sumTotal + (deviceUsage * deviceAvgPower)
+        If deviceUsage > 0 Then
+            With lstAppliance
+                .AddItem
+                .List(j, 0) = j & ">"
+                .List(j, 1) = deviceName
+                .List(j, 2) = deviceUsage
+                j = j + 1
+            End With
+        End If
+    Next
+    calcConsSummer = sumTotal
+End Function
+
+Function calcConsWinter(row As Integer)
+    Dim lCol As Long
+    Dim labelArr
+    labelArr = Array("Appliance Name", "Hour Usage")
+    
+    With lstAppliance
+        .Clear
+        .AddItem
+        .List(0, 0) = ""
+        .List(0, 1) = labelArr(0)
+        .List(0, 2) = labelArr(1)
+    End With
+    
+    timeUseWinterTop = 1
+    timeUseWinterLeft = 2
+    consWinterTop = 3
+    avgPowerKWH = 4
+    sumTotal = 0
+    j = 1
+    lCol = Worksheets("HHS appliances time of use W").Cells(timeUseWinterTop + row, Columns.Count).End(xlToLeft).Column
+    For i = 0 To lCol - 1 Step 1
+        deviceName = Worksheets("HHS appliances time of use W").Cells(timeUseWinterTop, timeUseWinterLeft + i)
+        deviceUsage = Worksheets("HHS appliances time of use W").Cells(timeUseWinterTop + row, timeUseWinterLeft + i)
+        deviceAvgPower = Worksheets("Consumption winter").Cells(consWinterTop + i, avgPowerKWH)
+        sumTotal = sumTotal + (deviceUsage * deviceAvgPower)
+        If deviceUsage > 0 Then
+            With lstAppliance
+                .AddItem
+                .List(j, 0) = j & ">"
+                .List(j, 1) = deviceName
+                .List(j, 2) = deviceUsage
+                j = j + 1
+            End With
+        End If
+    Next
+    calcConsWinter = sumTotal
+End Function
+
+Private Sub cmbHouseSample_Change()
+    Dim selection As Integer
+    Dim topOffset As Integer
+    Dim leftOffset As Integer
+    Dim summerCons As Double
+    Dim winterCons As Double
+    Dim row As Integer
+    
+    topOffset = 4
+    leftOffset = 1
+    
+    
+    Dim labelArr
+    labelArr = Array("Gender", "House Size", "House Type", "No. of People", "Employment Status", "Family Age Group", "Statement Apply to you")
+    With lstStats
+        .Clear
+        For i = 0 To 6 Step 1
+            .AddItem
+            .List(i, 0) = labelArr(i)
+            .List(i, 1) = Worksheets("House Details").Cells(selection + topOffset, leftOffset + i + 1)
+        Next
+    End With
+    
+    row = Mid(Me.cmbHouseSample.Value, 6)
+    winterCons = calcConsWinter(row)
+    summerCons = calcConsSummer(row)
+    'Me.optSummer.SetFocus
+    
+    Call populateSampleStats(summerCons, winterCons)
+End Sub
+
+Private Sub optSummer_Click()
+    row = Mid(Me.cmbHouseSample.Value, 6)
+    calcConsSummer (row)
+End Sub
+
+
+Private Sub optWinter_Click()
+    row = Mid(Me.cmbHouseSample.Value, 6)
+    calcConsWinter (row)
+End Sub
+
+
+Private Sub UserForm_Initialize()
+    'Set offsets for all the sheets
+    Dim lRow As Long
+    Dim i As Integer
+    
+    MsgBox ("Please wait while the application initializes.")
+    lRow = Worksheets("House Details").Cells(Rows.Count, 1).End(xlUp).row
+    lCol = Worksheets("House Details").Cells(1, Columns.Count).End(xlToLeft).Column
+    
+    cmbHouseSample.Clear
+    For i = 1 To (lRow - 1) Step 1
+        With cmbHouseSample
+        .AddItem ("House " & i)
+        End With
+    Next
+    Call populateGlobalStats
+    MsgBox ("User Form Initialized with " & (lRow - 1) & " samples.")
+    
+End Sub
