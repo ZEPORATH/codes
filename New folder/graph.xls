@@ -1,0 +1,32 @@
+
+Private Sub CommandButton1_Click()
+
+End Sub
+
+Private Sub CommandButton2_Click()
+
+End Sub
+
+Private Sub Image1_Click()
+
+End Sub
+
+Private Sub ListBox1_Click()
+
+End Sub
+
+Private Sub UserForm_Click()
+
+End Sub
+Private Sub CloseButton_Click()
+    Unload Me
+End Sub
+
+Private Sub CharSheet()
+    Dim CharSheet1 As Chart
+    Set ChartSheet1 = Charts.Add
+    
+    With CharSheet1
+        .SetSourceData Source:=Worksheets("HHS appliances time of use W").Range("A1")
+    End With
+End Sub
